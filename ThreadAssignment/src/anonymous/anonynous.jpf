@@ -1,0 +1,3 @@
+target = Main
+classpath = .
+listener=gov.nasa.jpf.listener.StateSpaceDot
