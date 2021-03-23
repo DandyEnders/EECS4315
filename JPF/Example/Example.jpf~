@@ -1,0 +1,3 @@
+target = Example
+classpath = .
+cg.enumerate_random=true

@@ -1,0 +1,4 @@
+target = Loop
+classpath = .
+listener=gov.nasa.jpf.listener.EndlessLoopDetector
+idle.max_backjumps=1000

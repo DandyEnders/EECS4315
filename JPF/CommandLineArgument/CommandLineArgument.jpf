@@ -1,0 +1,3 @@
+target = CommandLineArgument
+classpath = .
+target.args = Awesome,JPF

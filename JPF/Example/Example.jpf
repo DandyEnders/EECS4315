@@ -1,0 +1,5 @@
+target = Example
+classpath = .
+native_classpath = .
+cg.enumerate_random=true
+listener=ExceptionListener
