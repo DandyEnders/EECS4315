@@ -1,22 +1,26 @@
-package anonymous;
 
 public class Main {
 
 	public static void main(String[] args) {
-		Thread threadMyNameIs = new Thread("My name is ") {
+		
+		Runnable runnableMyNameIs = new Runnable() {
 			public void run() {
 				for(int i = 1; i <= 2; i++) {
 					System.out.println(Thread.currentThread().getName());
 				}
 			}
 		};
-		Thread threadJinho = new Thread("Jinho"){
+		Runnable runnableJinho = new Runnable() {
 			public void run() {
 				for(int i = 1; i <= 2; i++) {
 					System.out.println(Thread.currentThread().getName());
 				}
 			}
 		};
+		
+		
+		Thread threadMyNameIs = new Thread(runnableMyNameIs, "My name is ");
+		Thread threadJinho = new Thread(runnableJinho, "Jinho");
 
 		threadMyNameIs.start();
 		threadJinho.start();

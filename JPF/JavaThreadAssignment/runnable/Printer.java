@@ -1,4 +1,3 @@
-package runnable;
 
 public class Printer implements Runnable {
 	

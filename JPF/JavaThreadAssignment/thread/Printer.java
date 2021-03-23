@@ -1,4 +1,3 @@
-package thread;
 
 public class Printer extends Thread {
 	
