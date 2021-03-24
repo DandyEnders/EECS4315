@@ -1,0 +1,3 @@
+target = StateExplosion
+argument = test
+classpath = .
