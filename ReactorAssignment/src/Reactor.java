@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -10,22 +12,17 @@ public class Reactor {
 	/**
 	 * Number of oxygen molecules to form one water molecule.
 	 */
-	static int OXYGEN;
+	static volatile int OXYGEN;
 
 	/**
 	 * Number of hydrogen molecules to form one water molecule.
 	 */
-	static int HYDROGEN;
+	static volatile int HYDROGEN;
 
-	/**
-	 * List of number of bonding Hydrogen.
-	 */
-	private volatile static List<Hydrogen> bondingHydrogen;
+	
+	private volatile static List<List<String>> moleculeList;
 
-	/**
-	 * Number of bonding Oxygen.
-	 */
-	private volatile static List<Oxygen> bondingOxygen;
+	private volatile Map<Integer, String> bondedWaterMolecules;
 
 	/**
 	 * Initializes this reactor.
@@ -33,26 +30,32 @@ public class Reactor {
 	public Reactor() {
 		this.OXYGEN = 0;
 		this.HYDROGEN = 0;
-
-		this.bondingHydrogen = new ArrayList<Hydrogen>();
-		this.bondingOxygen = new ArrayList<Oxygen>();
+		this.moleculeList = new ArrayList<List<String>>();
+		this.bondedWaterMolecules = new HashMap<Integer, String>();
 	}
 
-	/**
-	 * Putting hydrogen on the imaginary chemistry table.
-	 */
-	private synchronized void putHydrogenOnTable(Hydrogen h) {
-		this.bondingHydrogen.add(h);
-		this.HYDROGEN++;
+	private synchronized void addMoleculeListIfLess(int nCandidate) {
+		if (nCandidate > this.moleculeList.size()) {
+			this.moleculeList.add(new ArrayList<String>());
+		}
 	}
-
-	/**
-	 * Putting oxygen on the imaginary chemistry table.
-	 */
-	private synchronized void putOxygenOnTable(Oxygen o) {
-		this.bondingOxygen.add(o);
-		this.OXYGEN++;
+	
+	private synchronized List<String> getnTHMolecule(int index){
+		return this.moleculeList.get(index);
 	}
+	
+	private synchronized int getnTHMoleculeSize(int index) {
+		return this.moleculeList.get(index).size();
+	}
+	
+	private synchronized void addAOxygenMolecule(int index, String name) {
+		this.moleculeList.get(index).add(name);
+	}
+	
+	private synchronized void addAHydrogenMolecule(int index, String name) {
+		this.moleculeList.get(index).add(name);
+	}
+	
 
 	/**
 	 * Forms a bond in this reactor of the thread invoking this method and other
@@ -64,12 +67,52 @@ public class Reactor {
 	public void bond() throws IllegalMoleculeException {
 		Thread currentThread = Thread.currentThread();
 
-		if (currentThread instanceof Oxygen) {
-			putOxygenOnTable((Oxygen) currentThread);
-		} else if (currentThread instanceof Hydrogen) {
-			putHydrogenOnTable((Hydrogen) currentThread);
-		} else {
-			throw new IllegalMoleculeException("This reactor can only take Hydrogen or Oxygen!");
+		addMoleculeListIfLess(Math.max(OXYGEN, HYDROGEN / 2) + 1);
+		
+		try {
+			if (currentThread instanceof Oxygen || currentThread instanceof Hydrogen) {
+				int nTHMolecule = 0;
+			
+				if (currentThread instanceof Oxygen) {
+					nTHMolecule = this.OXYGEN;
+					this.OXYGEN++;
+				} else if (currentThread instanceof Hydrogen) {
+					nTHMolecule = this.HYDROGEN / 2;
+					this.HYDROGEN++;
+				}
+				
+				addMoleculeListIfLess( Math.max(OXYGEN, HYDROGEN / 2) + 1);
+				
+				synchronized (getnTHMolecule(nTHMolecule)) {
+					if (getnTHMoleculeSize(nTHMolecule) < 2) {
+						addAOxygenMolecule(nTHMolecule, currentThread.getName());
+						
+						System.out.println(currentThread.getName() + " wait " + nTHMolecule + " " + getnTHMoleculeSize(nTHMolecule));
+						getnTHMolecule(nTHMolecule).wait();
+					} else {
+						addAOxygenMolecule(nTHMolecule, currentThread.getName());
+						System.out.println(currentThread.getName() + " notify all " + nTHMolecule + " " + getnTHMoleculeSize(nTHMolecule));
+						getnTHMolecule(nTHMolecule).notifyAll();
+					}
+				}
+				
+				List<String> oneMoleculeList = this.moleculeList.get(nTHMolecule);
+				
+				String resultMolecule = "[" 
+						+ oneMoleculeList.get(0)
+						+ " - "
+						+ oneMoleculeList.get(1)
+						+ " - "
+						+ oneMoleculeList.get(2)
+						+ "]";
+				
+				this.bondedWaterMolecules.put(nTHMolecule, resultMolecule);
+				System.out.println("molecule " + resultMolecule);
+			} else {
+				throw new IllegalMoleculeException("This reactor can only take Hydrogen or Oxygen!");
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -82,21 +125,11 @@ public class Reactor {
 	 */
 	public List<String> getBondings() {
 		List<String> result = new ArrayList<String>();
-
-		int nWaterMolecules = Math.min(bondingHydrogen.size() / 2, bondingOxygen.size());
-
-		for (int i = 0; i < nWaterMolecules; i++) {
-			String aResult = "";
-
-			aResult += bondingHydrogen.get(i * 2).getName();
-			aResult += " - ";
-			aResult += bondingHydrogen.get(i * 2 + 1).getName();
-			aResult += " - ";
-			aResult += bondingOxygen.get(i).getName();
-
-			result.add(aResult);
+		
+		for (Integer k : this.bondedWaterMolecules.keySet()) {
+			result.add(this.bondedWaterMolecules.get(k));
 		}
-
+		
 		return result;
 	}
 }
