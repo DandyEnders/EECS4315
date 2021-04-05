@@ -22,7 +22,7 @@ public class Reactor {
 	
 	private volatile static List<List<String>> moleculeList;
 
-	private volatile Map<Integer, String> bondedWaterMolecules;
+	private volatile List<String> bondedWaterMolecules;
 
 	/**
 	 * Initializes this reactor.
@@ -31,12 +31,13 @@ public class Reactor {
 		this.OXYGEN = 0;
 		this.HYDROGEN = 0;
 		this.moleculeList = new ArrayList<List<String>>();
-		this.bondedWaterMolecules = new HashMap<Integer, String>();
+		this.bondedWaterMolecules = new ArrayList<String>();
 	}
 
 	private synchronized void addMoleculeListIfLess(int nCandidate) {
 		if (nCandidate > this.moleculeList.size()) {
 			this.moleculeList.add(new ArrayList<String>());
+			this.bondedWaterMolecules.add(null);
 		}
 	}
 	
@@ -95,15 +96,13 @@ public class Reactor {
 				
 				List<String> oneMoleculeList = this.moleculeList.get(nTHMolecule);
 				
-				String resultMolecule = "[" 
-						+ oneMoleculeList.get(0)
+				String resultMolecule = oneMoleculeList.get(0)
 						+ " - "
 						+ oneMoleculeList.get(1)
 						+ " - "
-						+ oneMoleculeList.get(2)
-						+ "]";
+						+ oneMoleculeList.get(2);
 				
-				this.bondedWaterMolecules.put(nTHMolecule, resultMolecule);
+				this.bondedWaterMolecules.set(nTHMolecule, resultMolecule);
 			} else {
 				throw new IllegalMoleculeException("This reactor can only take Hydrogen or Oxygen!");
 			}
@@ -120,12 +119,7 @@ public class Reactor {
 	 * @return the bondings that are formed in this reactor
 	 */
 	public List<String> getBondings() {
-		List<String> result = new ArrayList<String>();
-		
-		for (Integer k : this.bondedWaterMolecules.keySet()) {
-			result.add(this.bondedWaterMolecules.get(k));
-		}
-		
-		return result;
+		this.bondedWaterMolecules.remove(null);
+		return this.bondedWaterMolecules;
 	}
 }
