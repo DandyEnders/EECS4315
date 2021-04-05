@@ -86,12 +86,9 @@ public class Reactor {
 				synchronized (getnTHMolecule(nTHMolecule)) {
 					if (getnTHMoleculeSize(nTHMolecule) < 2) {
 						addAOxygenMolecule(nTHMolecule, currentThread.getName());
-						
-						System.out.println(currentThread.getName() + " wait " + nTHMolecule + " " + getnTHMoleculeSize(nTHMolecule));
 						getnTHMolecule(nTHMolecule).wait();
 					} else {
 						addAOxygenMolecule(nTHMolecule, currentThread.getName());
-						System.out.println(currentThread.getName() + " notify all " + nTHMolecule + " " + getnTHMoleculeSize(nTHMolecule));
 						getnTHMolecule(nTHMolecule).notifyAll();
 					}
 				}
@@ -107,7 +104,6 @@ public class Reactor {
 						+ "]";
 				
 				this.bondedWaterMolecules.put(nTHMolecule, resultMolecule);
-				System.out.println("molecule " + resultMolecule);
 			} else {
 				throw new IllegalMoleculeException("This reactor can only take Hydrogen or Oxygen!");
 			}
